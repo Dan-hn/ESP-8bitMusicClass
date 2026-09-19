@@ -10,7 +10,8 @@
 double mu[12];
 double mel[7];
 int me[] = {1,1,5,5,6,6,5,0,4,4,3,3,2,2,1};
-
+int me02[]= {5,5,3,4,5,5,3,4,5,15,16,17,1,2,3,4,3,3,1,2,3,3,1,2,3,14,15,16};
+int len02 = sizeof(me02)/sizeof(me02[0]);
 class MusicP {
     private:
         int _uT = 200;
@@ -40,8 +41,14 @@ class MusicP {
             if (freq==0) {
                 delay(200);
                 return;
+            }elif(freq>0 && freq<10) {
+                _dT = _dT0/_mel[freq-1];   
+            }elif(freq>10 && freq<20) {
+                _dT = 2*(_dT0/_mel[freq-11]);
+                
+            }elif(freq>20 && freq<30) {
+                _dT = 0.5*_dT0/_mel[freq-21];
             }
-            _dT = _dT0/_mel[freq-1];
             for(double i=0;i<_uT;i+=_dT){
                 digitalWrite(PIN_WRITE, HIGH);
                 delayMicroseconds((_dT/2)*1000);
@@ -54,8 +61,14 @@ class MusicP {
             if (freq==0) {
                 delay(200);
                 return;
+            }elif(freq>0 && freq<10) {
+                _dT = _dT0/_mel[freq-1];   
+            }elif(freq>10 && freq<20) {
+                _dT = 2*(_dT0/_mel[freq-11]);
+                
+            }elif(freq>20 && freq<30) {
+                _dT = 0.5*_dT0/_mel[freq-21];
             }
-            _dT = _dT0/_mel[freq-1];
             for(double i=0;i<_uT;i+=_dT){
                 digitalWrite(PIN_WRITE, HIGH);
                 delayMicroseconds((_dT/2)*1000);
@@ -141,10 +154,12 @@ void setup() {
     // music.play(3,7);
     
 }
-int count = 0;
-void loop() {delay(1000);
-    // MusicP music;
-    // music.setup();
+
+void loop() {
+    delay(1000);
+    Serial.println("Loop runing...");
+    MusicP music;
+    music.setup();
     // count++;
     // Serial.println("Loop count: " + String(count));
     // delay(1200);
@@ -161,26 +176,26 @@ void loop() {delay(1000);
     //         delay(1);
     //     }
     // }
-    // if (digitalRead(PIN_READ) == HIGH) {
-    //     //Music();
-    //     // for(int i=0; i<15; i++){
-    //     //     music.playd(me[i]);
-    //     // }
-    //     // music.play(1,5);
-    //     // music.play(2,6);
-    //     // music.play(3,7);
-    //     // music.play(4,1);
-    //     // music.play(5,2);
-    //     // music.play(6,3);
-    //     // music.play(7,4);
-    //     delay(500);
-    //     music.play(1,5);
-    //     music.play(2,6);
-    // }
+    if (digitalRead(PIN_READ) == HIGH) {
+        //Music();
+        /*for(int i=0; i<15; i++){
+            music.playd(me[i]);
+        }*/
+        for(int i=0; i<len02; i++){
+            music.play(me02[i]);
+        }
+        // music.play(1,5);
+        // music.play(2,6);
+        // music.play(3,7);
+        // music.play(4,1);
+        // music.play(5,2);
+        // music.play(6,3);
+        // music.play(7,4);
+    }
     
     // Serial.println(" done");
 }
-void Music() {
+/*void Music() {
     int uT = 200;
     double uHz = 220;
     double dT0 = 1000/uHz;
@@ -228,4 +243,4 @@ void Music() {
     }
     
     
-}
+}*/
