@@ -16,6 +16,15 @@ int me03[] = {0,1,5,3,0,1,6,3,0,1,5,3,0,1,5,17};
 int me00[] = {11,12,13,14,15,16,17,
                1, 2, 3, 4, 5, 6, 7,
               21,22,23,24,25,26,27};
+int mice0[] = { 1, 1, 1, 1, 1 , 1 , 1 , 1 };
+int mice00[]= { 5 , 5 , 5 , 5 , 3 , 3 , 3 , 3 ,  5,  5,  5, 5,  3, 3, 3, 3, 3, 3, 3, 1, 5, 5, 5, 1, 3, 3,3,3, 5, 5, 5, 1,};
+int mice02[]= {1,1, 5, 5, 5, 5, 5, 5, 3, 3, 3, 3, 5, 5, 5, 5, 3, 3, 3, 3, 3};
+int mice03[]= {6,6,11,11,13,13,15,15,13,13,13,13,15,15,15,15,13,13,13,13,13};
+int mice1[] = { 6, 6, 6, 7, 21, 21, 22, 22};
+int mice01[]= { 23, 23, 23, 22, 25, 25, 25, 25, 21, 21, 21, 6, 23,23,22,22,21,21,21,21,21,21,21,21,21,21,6,6,21,21,21,21};
+int lenmice = sizeof(mice0)/sizeof(mice0[0]);
+int lenmice0= sizeof(mice00)/sizeof(mice00[0]);
+int lenmice1= sizeof(mice02)/sizeof(mice02[0]);
 int len00 = sizeof(me00)/sizeof(me00[0]);
 int len02 = sizeof(me02)/sizeof(me02[0]);
 int len01 = sizeof(me01)/sizeof(me01[0]);
@@ -23,6 +32,8 @@ int len03 = sizeof(me03)/sizeof(me03[0]);
 class MusicPl {
     private:
         int _uTm = 200000;
+        int _uTmpt = _uTm;
+        int _uTmp = _uTm;
         double _uHz = 220;
         double _dT0 = 1000/_uHz;
         double _dTm = _dT0;
@@ -46,11 +57,14 @@ class MusicPl {
             _mel[5] = _mu[9];
             _mel[6] = _mu[11];
         }
+        void setT(double x){
+            _uTmpt = x*_uTm;
+        }
         void playd(int freq) {
             int _stepT = 20;
             int _errT = 1;
             bool _isH = false;
-            int _uTmp = _uTm;
+            int _uTmp = _uTmpt;
             if (freq==0) {
                 delay(100);
                 return;
@@ -84,12 +98,29 @@ class MusicPl {
         }
         void playdf(int freq0,int freq1){
             int _stepT = 10;
-            int _errT = 1;
+            //int _errT = 1;
             bool _isH0 = false;
             bool _isH1 = false;
-            int _uTmp = _uTm;
-            int _dT_u0 = 500*_dT0/_mel[freq0-1];
-            int _dT_u1 = 500*_dT0/_mel[freq1-1];
+            int _uTmp = _uTmpt;
+            int _dT_u0 = 0;
+            int _dT_u1 = 0;
+            if (freq0 == 0 || freq1 == 0){delayMicroseconds(_uTmp);return;}
+            if(freq0>0 && freq0<10) {
+                _dT_u0 = 250*_dT0/_mel[freq0-1];   
+            }elif(freq0>10 && freq0<20) {
+                _dT_u0 = 500*(_dT0/_mel[freq0-11]);
+                
+            }elif(freq0>20 && freq0<30) {
+                _dT_u0 = 125*_dT0/_mel[freq0-21];
+            }
+            if(freq1>0 && freq1<10) {
+                _dT_u1 = 250*_dT0/_mel[freq1-1];   
+            }elif(freq1>10 && freq1<20) {
+                _dT_u1 = 500*(_dT0/_mel[freq1-11]);
+                
+            }elif(freq1>20 && freq1<30) {
+                _dT_u1 = 125*_dT0/_mel[freq1-21];
+            }
             _dT_0 = _dT_u0;
             _dT_1 = _dT_u1;
             for(int i=0;i<_uTmp;i+=_stepT){
@@ -97,22 +128,19 @@ class MusicPl {
                     _isH0 = !_isH0;
                     _dT_0 += _dT_u0;
                 }
-                
-                
                 if(i > _dT_1 ){
                     _isH1 = !_isH1;
                     _dT_1 += _dT_u1;
                 }
                 if ( _isH0 || _isH1) {
                     digitalWrite(PIN_WRITE, HIGH);
-                
                 }else{
                     digitalWrite(PIN_WRITE, LOW);
-
                 }
                 delayMicroseconds(_stepT);
                 
             }
+            
         }
         
 };
@@ -289,9 +317,7 @@ void loop() {
         for(int i=0; i<len00; i++){
             musicl.playd(me00[i]);
         }
-        for(int i=0; i<len03; i++){
-            music.playd(me03[i]);
-        }
+        
         
         // music.play(1,5);
         // music.play(2,6);
@@ -302,8 +328,19 @@ void loop() {
         // music.play(7,4);
     }
     if (digitalRead(1) == HIGH) {
-        musicl.playdf(1,5);
-        musicl.playdf(2,6);
+        for (size_t i = 0; i < lenmice; i++)
+        {
+            musicl.playdf(mice0[i],mice1[i]);
+        }
+        for (size_t i = 0; i < lenmice0; i++)
+        {
+            musicl.playdf(mice00[i],mice01[i]);
+        }
+        for (size_t i = 0; i < lenmice1; i++)
+        {
+            musicl.playdf(mice02[i],mice03[i]);
+        }
+        
 
     }
 }
