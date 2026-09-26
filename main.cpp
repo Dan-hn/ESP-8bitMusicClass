@@ -34,6 +34,7 @@ class MusicPl {
         int _uTm = 200000;
         int _uTmpt = _uTm;
         int _uTmp = _uTm;
+        int _ustep = 20;
         double _uHz = 220;
         double _dT0 = 1000/_uHz;
         double _dTm = _dT0;
@@ -45,6 +46,8 @@ class MusicPl {
         
     public:
  
+
+        
         void setup() {
             for(int i = 0; i < 12; i++){
                 _mu[i] = pow(1.05946309436,(double)i);
@@ -61,43 +64,79 @@ class MusicPl {
             _uTmpt = x*_uTm;
         }
         void playd(int freq) {
-            int _stepT = 20;
+            int _stepT = _ustep;
             int _errT = 1;
             bool _isH = false;
             int _uTmp = _uTmpt;
             if (freq==0) {
                 delay(100);
                 return;
-            }elif(freq>0 && freq<10) {
+            }else if(freq>0 && freq<10) {
                 _dTm = 500*_dT0/_mel[freq-1];   
-            }elif(freq>10 && freq<20) {
+            }else if(freq>10 && freq<20) {
                 _dTm = 1000*(_dT0/_mel[freq-11]);
-                _stepT << 1;
                 
-            }elif(freq>20 && freq<30) {
+            }else if(freq>20 && freq<30) {
                 _dTm = 250*_dT0/_mel[freq-21];
             }
             for(double i=0;i<_uTmp;i+=_stepT){
                 if ( i < _dTm ){
                     delayMicroseconds(_stepT-_errT);
 
-                }elif(!_isH) {
+                }else if(!_isH) {
                     digitalWrite(PIN_WRITE, HIGH);
                     delayMicroseconds(_stepT-_errT);
                     _isH = true;
                     i = 0;
-                    _uTmp = _uTmp - _dTm;
+                    _uTmp -= _dTm;
                 }else {
                     digitalWrite(PIN_WRITE, LOW);
                     delayMicroseconds(_stepT-_errT);
                     _isH = false;
                     i = 0;
-                    _uTmp = _uTmp - _dTm;
+                    _uTmp -= _dTm;
                 }
             }
         }
+        void playdf(int freq,double c) {
+            int _stepT = _ustep;
+            int _errT = 1;
+            bool _isH = false;
+            int _uTmp = _uTmpt;
+            if (freq==0) {
+                delay(100);
+                return;
+            }else if(freq>0 && freq<10) {
+                _dTm = 500*_dT0/_mel[freq-1];   
+            }else if(freq>10 && freq<20) {
+                _dTm = 1000*(_dT0/_mel[freq-11]);
+                
+            }else if(freq>20 && freq<30) {
+                _dTm = 250*_dT0/_mel[freq-21];
+            }
+            for(double i=0;i<_uTmp;i+=_stepT){
+                if ( i < _dTm ){
+                    delayMicroseconds(_stepT-_errT);
+
+                }else if(!_isH) {
+                    digitalWrite(PIN_WRITE, HIGH);
+                    delayMicroseconds(_stepT-_errT);
+                    _isH = true;
+                    i = 0;
+                    _uTmp -= _dTm;
+                }else {
+                    digitalWrite(PIN_WRITE, LOW);
+                    delayMicroseconds(_stepT-_errT);
+                    _isH = false;
+                    i = 0;
+                    _uTmp -= _dTm;
+                }
+                _dTm -= c/10;
+            }
+        }
         void playdf(int freq0,int freq1){
-            int _stepT = 10;
+
+            int _stepT = _ustep;
             //int _errT = 1;
             bool _isH0 = false;
             bool _isH1 = false;
@@ -142,7 +181,66 @@ class MusicPl {
             }
             
         }
-        
+        void playl(int freq,int freqc,int speed){
+            int _stepT = _ustep;
+            bool _isH = false;
+            int _uTmp = _uTmpt;
+            int _dTmc = _dT0;
+            int _dTma = _dTm;
+            int _dcount = 0;
+            if (freq==0) {
+                delay(100);
+                return;
+            }else if(freq>0 && freq<10) {
+                _dTm = 500*_dT0/_mel[freq-1];   
+            }else if(freq>10 && freq<20) {
+                _dTm = 1000*(_dT0/_mel[freq-11]);
+                
+            }else if(freq>20 && freq<30) {
+                _dTm = 250*_dT0/_mel[freq-21];
+            }
+            if (freqc==0) {
+                playd(freq);
+                return;
+            }else if(freqc>0 && freqc<10) {
+                _dTmc = 500*_dT0/_mel[freqc-1];   
+            }else if(freqc>10 && freqc<20) {
+                _dTmc = 1000*(_dT0/_mel[freqc-11]);
+                
+            }else if(freqc>20 && freqc<30) {
+                _dTmc = 250*_dT0/_mel[freqc-21];
+            }
+
+            
+            _dcount = (1000*speed)/((_dTmc + _dTm)/2);
+            speed = (_dTmc - _dTm)/((1000*speed)/((_dTmc + _dTm)/2));//change speed into unitdeltaT
+            _dTma = _dTm;
+            int count = 0;
+            //setup done
+            for (int i = 0; i < _uTmp; i+=_stepT)//main loop
+            {
+                delayMicroseconds(_stepT-1);
+                if ( i > _dTma ){
+                    if (_isH){
+                        digitalWrite(PIN_WRITE,LOW);
+                    }else{
+                        digitalWrite(PIN_WRITE,HIGH);
+                    }
+                    _isH = !_isH;
+                    i = 0;
+                    _uTmp -= _dTma;
+                    if (count < _dcount ){
+                        count++;
+                        _dTma += speed;
+                    }
+                    }
+                    
+                    //_dTma += 10;
+            }
+
+        }
+
+
 };
 class MusicP {
     private:
@@ -173,12 +271,12 @@ class MusicP {
             if (freq==0) {
                 delay(100);
                 return;
-            }elif(freq>0 && freq<10) {
+            }else if(freq>0 && freq<10) {
                 _dT = _dT0/_mel[freq-1];   
-            }elif(freq>10 && freq<20) {
+            }else if(freq>10 && freq<20) {
                 _dT = 2*(_dT0/_mel[freq-11]);
                 
-            }elif(freq>20 && freq<30) {
+            }else if(freq>20 && freq<30) {
                 _dT = 0.5*_dT0/_mel[freq-21];
             }
             for(double i=0;i<_uT;i+=_dT){
@@ -193,12 +291,12 @@ class MusicP {
             if (freq==0) {
                 delay(_uT);
                 return;
-            }elif(freq>0 && freq<10) {
+            }else if(freq>0 && freq<10) {
                 _dT = _dT0/_mel[freq-1];   
-            }elif(freq>10 && freq<20) {
+            }else if(freq>10 && freq<20) {
                 _dT = 2*(_dT0/_mel[freq-11]);
                 
-            }elif(freq>20 && freq<30) {
+            }else if(freq>20 && freq<30) {
                 _dT = 0.5*_dT0/_mel[freq-21];
             }
             for(double i=0;i<_uT;i+=_dT){
@@ -214,7 +312,7 @@ class MusicP {
         //         playd(me[i]);
         //     }
         // }
-        void play(int freq0,int freq1){
+        /*void play(int freq0,int freq1){
             if(freq1==0 || freq0==0) {
                 delay(200);
                 return;
@@ -250,7 +348,7 @@ class MusicP {
                 }
                 delayMicroseconds((_dT_1-_dT_0*_dTt)*1000);
             }
-        }
+        }*/
         
 };
 void setup() {
@@ -275,15 +373,15 @@ void setup() {
     MusicPl musicl;
     musicl.setup();
     music.setup();
-    music.play(1);
-    music.play(2);
-    music.play(3);
-    music.play(4);
-    music.play(5);
-    music.play(4);
-    music.play(3);
-    music.play(2);
-    music.play(1);
+    // music.play(1);
+    // music.play(2);
+    // music.play(3);
+    // music.play(4);
+    // music.play(5);
+    // music.play(4);
+    // music.play(3);
+    // music.play(2);
+    // music.play(1);
     musicl.playd(1);
     musicl.playd(2);
     musicl.playd(3);
@@ -306,7 +404,7 @@ void loop() {
     MusicPl musicl;
     music.setup();
     musicl.setup();
-    if (digitalRead(PIN_READ) == HIGH) {
+    /*if (digitalRead(9) == HIGH) {
         //Music();
         /*for(int i=0; i<15; i++){
             music.playd(me[i]);
@@ -314,20 +412,21 @@ void loop() {
         /*for(int i=0; i<len01; i++){
             music.playd(me01[i]);
         }*/
-        for(int i=0; i<len00; i++){
-            musicl.playd(me00[i]);
-        }
+        //for(int i=0; i<len00; i++){
+        //    musicl.playd(me00[i]);
+        //}
         
         
         // music.play(1,5);
         // music.play(2,6);
         // music.play(3,7);
         // music.play(4,1);
+        //
         // music.play(5,2);
         // music.play(6,3);
         // music.play(7,4);
-    }
-    if (digitalRead(1) == HIGH) {
+    //}
+    if (digitalRead(2) == HIGH) {
         for (size_t i = 0; i < lenmice; i++)
         {
             musicl.playdf(mice0[i],mice1[i]);
@@ -340,7 +439,18 @@ void loop() {
         {
             musicl.playdf(mice02[i],mice03[i]);
         }
+    
         
 
     }
+        musicl.playdf(1,0.5);
+        musicl.playl(21,11,100);
+        musicl.playl(11,21,100);
+        musicl.playl(21,11,100);
+        musicl.playl(11,21,100);
+        musicl.playl(21,11,100);
+        musicl.playl(11,21,100);
+        musicl.playl(21,11,100);
+        musicl.playl(11,21,100);
+    
 }
